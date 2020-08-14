@@ -3,6 +3,7 @@ import consoleManager as cons
 import legalMoves as glm
 import random as ran
 import math
+from collections import deque
 from openingCacher import Openings
 from minimax import minimax
 from outStorage import *
@@ -13,22 +14,25 @@ class BoardState:
         self.board_hist = []
         self.openings = Openings()
         self.openings.load_openings()
-        self.focal_moves =[[False for i in range(5)],[False for i in range(5)]]
+        self.focal_moves = [deque([False for i in range(5)]),deque([False for i in range(5)])]
         for col in range(size):
             self.Board+=[[0,]*size]
         self.turn = 1 #Turns stored as 1 or -1
 
-    def run(self):
-        cons.display_v1(self.Board)
+    def run(self,white_move = 0,black_move = 0,display = cons.display_v1, yield_disp = None):
+        if (yield_disp := display(self.Board)) != None: yield yield_disp
         for k in range(5000):
             moves = glm.get_legal_moves(self.Board,self.turn)
 
-            if self.turn == 1:
-                self.player_move()
+            if self.turn == -1:
+                self.cpu_move(.55)
+                #self.call_move(player_1)
             else:
-                self.cpu_move(.5)
+                self.cpu_move(.55)
+                #self.call_move(player_2)
                 #player_move()
             self.turn*=-1
+            if (yield_disp := display(self.Board)) != None: yield yield_disp
 
             if bhdlr.end_check(self.Board,self.board_hist):
                 end_count = sum(bhdlr.tile_count(self.Board))
@@ -40,6 +44,13 @@ class BoardState:
                 else:
                     print("Tie Game.")
                 break
+
+
+    def call_move(self,data):
+        if data[0] == "cpu":
+            self.cpu_move(data[1])
+        elif data[0] == "player":
+            self.player_move()
 
     def opening_mining(self,advanced):
         for k in range(4):
@@ -115,10 +126,10 @@ class BoardState:
             self.focal_move(focal)
 
         bhdlr.do_move(self.Board,move,self.turn,self.board_hist)
-        cons.display_v1(self.Board)
         print((0,"White plays ","Black plays ")[self.turn]+cons.to_alg_format(move))
         if threat:
             threat = minimax(self.Board,self.turn,self.board_hist,2,True,advanced = 0.3, focal_moves = self.focal_moves)[1]
+
             self.focal_move(threat)
             print(f"threatening {cons.to_alg_format(threat)}.")
         else:
@@ -130,11 +141,5 @@ class BoardState:
                 print(("Black favor.","Black winning.")[abs(favor)>(len(self.Board)*2)])
 
     def focal_move(self, move):
-        self.focal_moves[(0,0,1)[self.turn]].insert(0, move)
+        self.focal_moves[(0,0,1)[self.turn]].appendleft(move)
         del self.focal_moves[(0,0,1)[self.turn]][-1]
-
-for i in range(10):
-    board = BoardState(7)
-    board.run()
-for i in range(5):
-    input()

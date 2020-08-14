@@ -64,7 +64,9 @@ def alg_input(in_str):
     else:
         piece = ""
 
-    piece = {v: k for k, v in TYPES2.items()}[piece]
+    piece = {v: k for k, v in TYPES2.items()}.get(piece, False)
+
+    if not piece: return False
 
     #Cleans coordinate input
     if not in_str[0] in ALPHAB: return False

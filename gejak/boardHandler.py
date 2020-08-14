@@ -3,7 +3,7 @@ import minimax as mmx
 import conflictHandler as chdlr
 import legalMoves as glm
 import random as ran
-from copy import deepcopy
+from jsonCopy import jcopy
 
 def update_square(board,square,id = 0):
     if square:
@@ -165,8 +165,7 @@ def monte_carlo_eval(board,board_hist,n):
     total = 0
 
     for i in range(n):
-        new_board_hist = deepcopy(board_hist)
-        new_board = deepcopy(board)
+        new_board_hist, new_board = jcopy((board_hist,board))
 
         for i in range(20):
             moves = glm.get_legal_moves(board,(len(board_hist)%2)*-2+1)

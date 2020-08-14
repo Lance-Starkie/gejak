@@ -1,21 +1,26 @@
 import boardHandler as bhdlr
 import legalMoves as glm
 import random as ran
-from copy import deepcopy
+from jsonCopy import jcopy
 
 def minimax(board, turn, board_hist, depth, main = False, alpha = -float("inf"), beta = float("inf"), sample = 1.0, advanced = False, focal_moves = None):
     '''Minimax Function'''
     best_move = None
     moves = glm.get_legal_moves(board,turn)
 
+    #Sorts moves so that notable moves are tested early on
     if focal_moves != None:
-        temp_moves = [moves.pop(0) for move in focal_moves[(0,0,1)[turn]] if move in moves]
+        temp_moves = [moves.popleft() for move in focal_moves[(0,0,1)[turn]] if move in moves]
+        if sample != 1.0:
+            moves = ran.sample(moves, int(sample*len(moves)))
         temp_moves.extend(moves)
         moves = temp_moves
 
-    if sample != 1.0:
-        moves = ran.sample(moves, int(sample*len(moves)))
+    else:
+        if sample != 1.0:
+            moves = ran.sample(moves, int(sample*len(moves)))
 
+    #Escapes minimax returning final node value
     if any((
         depth == 0,
         bhdlr.end_check(board,board_hist),
@@ -34,12 +39,12 @@ def minimax(board, turn, board_hist, depth, main = False, alpha = -float("inf"),
 
     elapsed_moves = 0
 
+    #Main Minimax function
     if turn == 1:
         value = -float("inf")
 
         for move in moves:
-            new_board_hist = deepcopy(board_hist)
-            new_board = deepcopy(board)
+            new_board_hist, new_board  = jcopy((board_hist,board))
 
             if main:
                 for i in range(2,5):
@@ -64,8 +69,7 @@ def minimax(board, turn, board_hist, depth, main = False, alpha = -float("inf"),
         value = float("inf")
 
         for move in moves:
-            new_board_hist = deepcopy(board_hist)
-            new_board = deepcopy(board)
+            new_board_hist, new_board  = jcopy((board_hist,board))
 
             if main:
                 for i in range(2,5):
